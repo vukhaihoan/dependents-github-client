@@ -1,86 +1,131 @@
+import React from "react";
+
+import CssBaseline from "@mui/material/CssBaseline";
+import MaUTable from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+
 import { useTable } from "react-table";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
+import axios from "axios";
 
-export default function Table() {
-  const data = useMemo(
-    () => [
-      {
-        col1: "Hello",
-        col2: "World",
-      },
-      {
-        col1: "react-table",
-        col2: "rocks",
-      },
-      {
-        col1: "whatever",
-        col2: "you want",
-      },
-    ],
-    []
+function Table({ columns, data }) {
+  // Use the state and functions returned from useTable to build your UI
+  const { getTableProps, headerGroups, rows, prepareRow } = useTable({
+    columns,
+    data,
+  });
+
+  // Render the UI for your table
+  return (
+    <MaUTable {...getTableProps()}>
+      <TableHead>
+        {headerGroups.map((headerGroup) => (
+          <TableRow {...headerGroup.getHeaderGroupProps()}>
+            {headerGroup.headers.map((column) => (
+              <TableCell {...column.getHeaderProps()}>
+                {column.render("Header")}
+              </TableCell>
+            ))}
+          </TableRow>
+        ))}
+      </TableHead>
+      <TableBody>
+        {rows.map((row, i) => {
+          prepareRow(row);
+          return (
+            <TableRow {...row.getRowProps()}>
+              {row.cells.map((cell) => {
+                return (
+                  <TableCell {...cell.getCellProps()}>
+                    {cell.render("Cell")}
+                  </TableCell>
+                );
+              })}
+            </TableRow>
+          );
+        })}
+      </TableBody>
+    </MaUTable>
   );
+}
 
+function App() {
   const columns = useMemo(
     () => [
       {
-        Header: "Column 1",
-        accessor: "col1", // accessor is the "key" in the data
+        Header: "Author",
+        accessor: "author", // accessor is the "key" in the data
+        Cell: ({ row }) => (
+          <a
+            href={`https://github.com/${row.values.author}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {row.values.repo}
+          </a>
+        ),
       },
       {
-        Header: "Column 2",
-        accessor: "col2",
+        Header: "repo",
+        accessor: "repo",
+        Cell: ({ row }) => (
+          <a
+            href={`https://github.com/${row.values.author}/${row.values.repo}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {row.values.repo}
+          </a>
+        ),
+      },
+      // {
+      //   Header: "Url",
+      //   accessor: "repoUrl",
+      //   Cell: ({ row }) => (
+      //     <a href={row.values.repoUrl} target="_blank" rel="noreferrer">
+      //       {row.values.repoUrl}
+      //     </a>
+      //   ),
+      // },
+      {
+        Header: "stars",
+        accessor: "stars",
+      },
+      {
+        Header: "forks",
+        accessor: "forks",
       },
     ],
     []
   );
 
-  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
-    useTable({ columns, data });
+  const [state, setState] = useState([]);
+  useEffect(() => {
+    axios
+      .get("https://dependents-github-sever.herokuapp.com/sort", {
+        params: {
+          url: "https://github.com/tannerlinsley/react-query",
+          type: "stars",
+          start: 0,
+          end: 10,
+        },
+      })
+      .then((res) => {
+        console.log(res.data);
+        setState(res.data);
+      });
+  }, []);
+  const data = useMemo(() => state, [state]);
 
   return (
-    <table {...getTableProps()} style={{ border: "solid 1px blue" }}>
-      <thead>
-        {headerGroups.map((headerGroup) => (
-          <tr {...headerGroup.getHeaderGroupProps()}>
-            {headerGroup.headers.map((column) => (
-              <th
-                {...column.getHeaderProps()}
-                style={{
-                  borderBottom: "solid 3px red",
-                  background: "aliceblue",
-                  color: "black",
-                  fontWeight: "bold",
-                }}
-              >
-                {column.render("Header")}
-              </th>
-            ))}
-          </tr>
-        ))}
-      </thead>
-      <tbody {...getTableBodyProps()}>
-        {rows.map((row) => {
-          prepareRow(row);
-          return (
-            <tr {...row.getRowProps()}>
-              {row.cells.map((cell) => {
-                return (
-                  <td
-                    {...cell.getCellProps()}
-                    style={{
-                      padding: "10px",
-                      border: "solid 1px gray",
-                      background: "papayawhip",
-                    }}
-                  >
-                    {cell.render("Cell")}
-                  </td>
-                );
-              })}
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
+    <div>
+      <CssBaseline />
+      <Table columns={columns} data={data} />
+    </div>
   );
 }
+
+export default App;
