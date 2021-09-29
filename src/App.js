@@ -1,9 +1,9 @@
 import "./App.css";
-import Table from "./components/table";
+import Test from "./components/Layout";
 export default function App() {
   return (
     <div className="App">
-      <Table />
+      <Test />
     </div>
   );
 }

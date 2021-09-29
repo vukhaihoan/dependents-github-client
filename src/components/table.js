@@ -52,48 +52,44 @@ function Table({ columns, data }) {
   );
 }
 
-function App() {
+function DpenTable({ url }) {
   const columns = useMemo(
     () => [
       {
-        Header: "Author",
+        Header: "Dependents",
         accessor: "author", // accessor is the "key" in the data
         Cell: ({ row }) => (
-          <a
-            href={`https://github.com/${row.values.author}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            {row.values.repo}
-          </a>
+          <div>
+            <a
+              href={`https://github.com/${row.values.author}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {row.values.author}
+            </a>
+            {" / "}
+            <a
+              href={`https://github.com/${row.values.author}/${row.values.repo}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {row.values.repo}
+            </a>
+          </div>
         ),
       },
       {
-        Header: "repo",
         accessor: "repo",
-        Cell: ({ row }) => (
-          <a
-            href={`https://github.com/${row.values.author}/${row.values.repo}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            {row.values.repo}
-          </a>
-        ),
+        Cell: ({ row }) => {
+          return null;
+        },
+        Header: () => null,
       },
-      // {
-      //   Header: "Url",
-      //   accessor: "repoUrl",
-      //   Cell: ({ row }) => (
-      //     <a href={row.values.repoUrl} target="_blank" rel="noreferrer">
-      //       {row.values.repoUrl}
-      //     </a>
-      //   ),
-      // },
       {
         Header: "stars",
         accessor: "stars",
       },
+
       {
         Header: "forks",
         accessor: "forks",
@@ -104,20 +100,23 @@ function App() {
 
   const [state, setState] = useState([]);
   useEffect(() => {
-    axios
-      .get("https://dependents-github-sever.herokuapp.com/sort", {
-        params: {
-          url: "https://github.com/tannerlinsley/react-query",
-          type: "stars",
-          start: 0,
-          end: 10,
-        },
-      })
-      .then((res) => {
-        console.log(res.data);
-        setState(res.data);
-      });
-  }, []);
+    if (url) {
+      axios
+        .get("https://dependents-github-sever.herokuapp.com/sort", {
+          params: {
+            url: url,
+            type: "stars",
+            start: 0,
+            end: 10,
+          },
+        })
+        .then((res) => {
+          console.log(res.data);
+          setState(res.data);
+        })
+        .catch((err) => console.log(err));
+    }
+  }, [url]);
   const data = useMemo(() => state, [state]);
 
   return (
@@ -128,4 +127,4 @@ function App() {
   );
 }
 
-export default App;
+export default DpenTable;
