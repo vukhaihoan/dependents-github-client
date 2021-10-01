@@ -52,7 +52,7 @@ function Table({ columns, data }) {
   );
 }
 
-function DpenTable({ url }) {
+function DpenTable({ stateInput }) {
   const columns = useMemo(
     () => [
       {
@@ -100,14 +100,14 @@ function DpenTable({ url }) {
 
   const [state, setState] = useState([]);
   useEffect(() => {
-    if (url) {
+    if (stateInput.url) {
       axios
         .get("https://dependents-github-sever.herokuapp.com/sort", {
           params: {
-            url: url,
+            url: stateInput.url,
             type: "stars",
-            start: 0,
-            end: 10,
+            start: stateInput.start,
+            end: stateInput.end,
           },
         })
         .then((res) => {
@@ -116,7 +116,7 @@ function DpenTable({ url }) {
         })
         .catch((err) => console.log(err));
     }
-  }, [url]);
+  }, [stateInput.url, stateInput.start, stateInput.end]);
   const data = useMemo(() => state, [state]);
 
   return (
